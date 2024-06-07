@@ -1,4 +1,7 @@
-﻿async function generateQuizzes() {
+﻿let quizzes = [];
+
+
+async function generateQuizzes() {
     const category = document.getElementById('category').value;
     const difficulty = document.getElementById('difficulty').value;
     const quizContainer = document.getElementById('quiz-display');
@@ -11,7 +14,13 @@
     try {
         const response = await fetch(apiUrl);
         const data = await response.json();
-        const quizzes = data.results;
+        quizzes = data.results;
+
+
+        if (quizzes.length === 0) {
+            quizContainer.innerHTML = 'No quizzes available for the selected category and difficulty level.';
+            return;
+        }
 
 
         quizzes.forEach((quiz, index) => {
@@ -48,8 +57,51 @@
 
             quizContainer.appendChild(quizElement);
         });
+
+
+        // Add a submit button
+        const submitButton = document.createElement('button');
+        submitButton.innerHTML = 'Submit Answers';
+        submitButton.onclick = checkAnswers;
+        quizContainer.appendChild(submitButton);
+
+
     } catch (error) {
         quizContainer.innerHTML = 'Failed to load quizzes. Please try again later.';
         console.error('Error fetching quizzes:', error);
     }
+}
+
+
+function checkAnswers() {
+    const quizContainer = document.getElementById('quiz-display');
+    const results = document.createElement('div');
+    results.classList.add('results');
+
+
+    quizzes.forEach((quiz, index) => {
+        const selectedOption = document.querySelector(`input[name="quiz-${index}"]:checked`);
+        const correctAnswer = quiz.correct_answer;
+        const resultElement = document.createElement('div');
+
+
+        if (selectedOption) {
+            if (selectedOption.value === correctAnswer) {
+                resultElement.innerHTML = `Question ${index + 1}: Correct`;
+                resultElement.style.color = 'green';
+            } else {
+                resultElement.innerHTML = `Question ${index + 1}: Incorrect. The correct answer was: ${correctAnswer}`;
+                resultElement.style.color = 'red';
+            }
+        } else {
+            resultElement.innerHTML = `Question ${index + 1}: No answer selected. The correct answer was: ${correctAnswer}`;
+            resultElement.style.color = 'orange';
+        }
+
+
+        results.appendChild(resultElement);
+    });
+
+
+    quizContainer.appendChild(results);
 }

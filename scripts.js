@@ -1,4 +1,24 @@
 let quizzes = [];
+let timer;
+
+function startTimer(duration, display) {
+    let timer = duration, minutes, seconds;
+    setInterval(() => {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+        if (--timer < 0) {
+            timer = duration;
+            checkAnswers();
+            alert("Time's up! Your answers have been submitted.");
+        }
+    }, 1000);
+}
 
 async function generateQuizzes() {
     const category = document.getElementById('category').value;
@@ -53,6 +73,17 @@ async function generateQuizzes() {
         submitButton.onclick = checkAnswers;
         quizContainer.appendChild(submitButton);
 
+        // Add timer
+        const timerElement = document.createElement('div');
+        timerElement.id = 'timer';
+        timerElement.style.fontSize = '1.5em';
+        timerElement.style.marginBottom = '20px';
+        quizContainer.appendChild(timerElement);
+
+        const timeInMinutes = 5; // Set your desired quiz duration here
+        const display = document.getElementById('timer');
+        startTimer(timeInMinutes * 60, display);
+
     } catch (error) {
         quizContainer.innerHTML = 'Failed to load quizzes. Please try again later.';
         console.error('Error fetching quizzes:', error);
@@ -63,6 +94,7 @@ function checkAnswers() {
     const quizContainer = document.getElementById('quiz-display');
     const results = document.createElement('div');
     results.classList.add('results');
+    let score = 0;
 
     quizzes.forEach((quiz, index) => {
         const selectedOption = document.querySelector(`input[name="quiz-${index}"]:checked`);
@@ -73,6 +105,7 @@ function checkAnswers() {
             if (selectedOption.value === correctAnswer) {
                 resultElement.innerHTML = `Question ${index + 1}: Correct`;
                 resultElement.style.color = 'green';
+                score++;
             } else {
                 resultElement.innerHTML = `Question ${index + 1}: Incorrect. The correct answer was: ${correctAnswer}`;
                 resultElement.style.color = 'red';
@@ -84,6 +117,12 @@ function checkAnswers() {
 
         results.appendChild(resultElement);
     });
+
+    const scoreElement = document.createElement('div');
+    scoreElement.innerHTML = `Your Score: ${score} out of ${quizzes.length}`;
+    scoreElement.style.fontSize = '1.5em';
+    scoreElement.style.marginTop = '20px';
+    results.appendChild(scoreElement);
 
     quizContainer.appendChild(results);
 }
